@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- mapper문서형식 지정 -->
+<!DOCTYPE mapper    
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lee.test.dao.ProjectIDao">
+	<!-- 프로젝트 등록 -->
+ 	<insert id="pCreate" parameterType="com.lee.test.dto.Project">
+		INSERT INTO PROJECT (bid, btitle, bname, bcontent, bhit, bgroup, bphoto, bgithub)
+		VALUES (project_seq.nextval, #{bTitle}, #{bName}, #{bContent}, 0, #{bGroup}, #{bPhoto}, #{bGithub})
+	</insert>
+	
+	<!-- 프로젝트 조회(여러개 리스트 반환) -->
+	<select id="pReadListAll" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		ORDER BY bId DESC
+	</select>
+	<select id="pReadList1" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		WHERE bGroup=1
+		ORDER BY bId DESC
+	</select>
+	<select id="pReadList2" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		WHERE bGroup=2
+		ORDER BY bId DESC
+	</select>
+	<select id="pReadList3" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		WHERE bGroup=3
+		ORDER BY bId DESC
+	</select>
+	
+	<!-- 조회수 업 -->
+	<update id="upHit" parameterType="int">
+		UPDATE PROJECT SET BHIT=BHIT + 1 WHERE BID=#{bId}		
+	</update>
+	
+	<!-- 특정 게시물 조회 1 -->
+	<select id="pReadOne" parameterType="int" resultType="com.lee.test.dto.Project">
+ 		SELECT * FROM PROJECT WHERE BID = #{bId}
+ 	</select>
+ 	
+ 	<!-- 특정 게시물 조회 2 -->
+	<select id="pReadCount" parameterType="int" resultType="com.lee.test.dto.ProjectSelectedCount">
+ 		SELECT
+    		(SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=#{bId}) bHeart,
+    		bHit,
+    		(SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=#{bId}) bReply
+		FROM project
+		Where bId=#{bId}
+ 	</select>
+ 	<!-- 특정 게시물 조회 3 -->
+ 	<select id="pReadReplyList" parameterType="int" resultType="com.lee.test.dto.Reply">
+ 		SELECT MEMNAME RNAME, RCONTENT, RDATE
+		FROM reply
+		WHERE BID=#{bId}
+		ORDER BY BID ASC
+ 	</select>
+ 	
+ 	<!-- 리플 등록 -->
+ 	<insert id="pCreateReply" parameterType="com.lee.test.dto.ReplyDto">
+		INSERT INTO REPLY (rid, bid, memname, rcontent)
+		VALUES (reply_seq.nextval, #{bId}, #{memName}, #{rContent})
+	</insert>
+	
+	<!-- 좋아요 중복 체크 -->
+	<select id="pCheckHeart" parameterType="com.lee.test.dto.Heart" resultType="com.lee.test.dto.Heart">
+		SELECT *
+		FROM heart
+		WHERE BID=#{bId} and MEMNAME=#{memName}
+	</select>
+	
+	<!-- 하트 업 -->
+	<insert id="upHeart" parameterType="com.lee.test.dto.Heart">
+		INSERT INTO HEART (hno, bid, memname) 
+		VALUES (heart_seq.nextval, #{bId}, #{memName})	
+	</insert>
+	
+	<!-- 게시물 조회 순서 -->
+	<!-- 프로젝트 조회(여러개 리스트 반환) -->
+	<select id="pReadListOrderBy" parameterType="com.lee.test.dto.OrderByDto" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		WHERE bGroup=${group}
+		ORDER BY ${orderBy} DESC
+	</select>
+	
+	<!-- 게시물 제목으로 찾기 -->
+	<select id="pReadSearchList" parameterType="String" resultType="com.lee.test.dto.ProjectList">
+		SELECT
+    		bId, 
+    		bTitle, 
+		    bName, 
+		    SUBSTR(bContent, 1, 50) bContent,
+		    bDate,
+		    bGroup,
+		    bPhoto,
+		    bHit,
+		    (SELECT COUNT(reply.bId) FROM reply WHERE reply.bId=project.bId) bReply,
+		    (SELECT COUNT(heart.bId) FROM heart WHERE heart.bId=project.bId) bHeart
+		FROM project
+		WHERE bTitle like '%'||#{value}||'%'
+		ORDER BY bId DESC
+	</select>
+</mapper>
